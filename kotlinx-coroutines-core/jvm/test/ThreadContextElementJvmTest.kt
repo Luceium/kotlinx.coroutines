@@ -9,50 +9,6 @@ import kotlinx.coroutines.flow.*
 class ThreadContextElementJvmTest : TestBase() {
 
     @Test
-    fun testExample() = runTest {
-        val exceptionHandler = coroutineContext[CoroutineExceptionHandler]!!
-        val mainDispatcher = coroutineContext[ContinuationInterceptor]!!
-        val mainThread = Thread.currentThread()
-        val data = MyData()
-        val element = MyElement(data)
-        assertNull(threadContextElementThreadLocal.get())
-        val job = GlobalScope.launch(element + exceptionHandler) {
-            assertTrue(mainThread != Thread.currentThread())
-            assertSame(element, coroutineContext[MyElement])
-            assertSame(data, threadContextElementThreadLocal.get())
-            withContext(mainDispatcher) {
-                assertSame(mainThread, Thread.currentThread())
-                assertSame(element, coroutineContext[MyElement])
-                assertSame(data, threadContextElementThreadLocal.get())
-            }
-            assertTrue(mainThread != Thread.currentThread())
-            assertSame(element, coroutineContext[MyElement])
-            assertSame(data, threadContextElementThreadLocal.get())
-        }
-        assertNull(threadContextElementThreadLocal.get())
-        job.join()
-        assertNull(threadContextElementThreadLocal.get())
-    }
-
-    @Test
-    fun testUndispatched() = runTest {
-        val exceptionHandler = coroutineContext[CoroutineExceptionHandler]!!
-        val data = MyData()
-        val element = MyElement(data)
-        val job = GlobalScope.launch(
-            context = Dispatchers.Default + exceptionHandler + element,
-            start = CoroutineStart.UNDISPATCHED
-        ) {
-            assertSame(data, threadContextElementThreadLocal.get())
-            yield()
-            assertSame(data, threadContextElementThreadLocal.get())
-        }
-        assertNull(threadContextElementThreadLocal.get())
-        job.join()
-        assertNull(threadContextElementThreadLocal.get())
-    }
-
-    @Test
     fun testWithContext() = runTest {
         expect(1)
         newSingleThreadContext("withContext").use {

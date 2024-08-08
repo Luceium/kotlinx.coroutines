@@ -3,54 +3,8 @@ package kotlinx.coroutines
 import kotlinx.coroutines.testing.*
 import kotlin.coroutines.*
 import kotlin.test.*
-import kotlin.native.concurrent.*
 
 class ThreadContextElementNativeTest : TestBase() {
-
-    @OptIn(ObsoleteWorkersApi::class)
-    @Test
-    fun testExample() = runTest {
-        val exceptionHandler = coroutineContext[CoroutineExceptionHandler]!!
-        val mainDispatcher = coroutineContext[ContinuationInterceptor]!!
-        val mainThread = Worker.current.id
-        val data = MyData()
-        val element = MyElement(data)
-        assertNull(threadContextElementThreadLocal.get())
-        val job = GlobalScope.launch(element + exceptionHandler) {
-            assertTrue(mainThread != Worker.current.id)
-            assertSame(element, coroutineContext[MyElement])
-            assertSame(data, threadContextElementThreadLocal.get())
-            withContext(mainDispatcher) {
-                assertSame(mainThread, Worker.current.id)
-                assertSame(element, coroutineContext[MyElement])
-                assertSame(data, threadContextElementThreadLocal.get())
-            }
-            assertTrue(mainThread != Worker.current.id)
-            assertSame(element, coroutineContext[MyElement])
-            assertSame(data, threadContextElementThreadLocal.get())
-        }
-        assertNull(threadContextElementThreadLocal.get())
-        job.join()
-        assertNull(threadContextElementThreadLocal.get())
-    }
-
-    @Test
-    fun testUndispatched() = runTest {
-        val exceptionHandler = coroutineContext[CoroutineExceptionHandler]!!
-        val data = MyData()
-        val element = MyElement(data)
-        val job = GlobalScope.launch(
-            context = Dispatchers.Default + exceptionHandler + element,
-            start = CoroutineStart.UNDISPATCHED
-        ) {
-            assertSame(data, threadContextElementThreadLocal.get())
-            yield()
-            assertSame(data, threadContextElementThreadLocal.get())
-        }
-        assertNull(threadContextElementThreadLocal.get())
-        job.join()
-        assertNull(threadContextElementThreadLocal.get())
-    }
 
     @Test
     fun testWithContext() = runTest {

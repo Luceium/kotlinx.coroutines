@@ -38,16 +38,39 @@ class ThreadContextElementTest : TestBase() {
     }
 
     @Test
+    fun testDispatched() = runTest {
+        val mainDispatcher = coroutineContext[ContinuationInterceptor]!!
+        val data = MyData()
+        val element = MyElement(data)
+        assertNull(threadContextElementThreadLocal.get())
+        val job = launch(Dispatchers.Default + element) {
+            assertSame(element, coroutineContext[MyElement])
+            assertSame(data, threadContextElementThreadLocal.get())
+            withContext(mainDispatcher) {
+                assertSame(element, coroutineContext[MyElement])
+                assertSame(data, threadContextElementThreadLocal.get())
+            }
+            assertSame(element, coroutineContext[MyElement])
+            assertSame(data, threadContextElementThreadLocal.get())
+        }
+        assertNull(threadContextElementThreadLocal.get())
+        job.join()
+        assertNull(threadContextElementThreadLocal.get())
+    }
+
+    @Test
     fun testUndispatched() = runTest {
         val exceptionHandler = coroutineContext[CoroutineExceptionHandler]!!
         val data = MyData()
         val element = MyElement(data)
-        val job = GlobalScope.launch(
+        val job = launch(
             context = Dispatchers.Default + exceptionHandler + element,
             start = CoroutineStart.UNDISPATCHED
         ) {
+            assertSame(element, coroutineContext[MyElement])
             assertSame(data, threadContextElementThreadLocal.get())
             yield()
+            assertSame(element, coroutineContext[MyElement])
             assertSame(data, threadContextElementThreadLocal.get())
         }
         assertNull(threadContextElementThreadLocal.get())
