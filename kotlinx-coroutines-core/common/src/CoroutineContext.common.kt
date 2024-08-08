@@ -59,7 +59,7 @@ internal inline fun <T> withContinuationContext(continuation: Continuation<*>, c
     }
 }
 
-internal fun Continuation<*>.updateUndispatchedCompletion(context: CoroutineContext, oldValue: Any?): UndispatchedCoroutine<*>? {
+private fun Continuation<*>.updateUndispatchedCompletion(context: CoroutineContext, oldValue: Any?): UndispatchedCoroutine<*>? {
     if (this !is CoroutineStackFrame) return null
     /*
      * Fast-path to detect whether we have undispatched coroutine at all in our stack.
@@ -80,7 +80,7 @@ internal fun Continuation<*>.updateUndispatchedCompletion(context: CoroutineCont
     return completion
 }
 
-internal tailrec fun CoroutineStackFrame.undispatchedCompletion(): UndispatchedCoroutine<*>? {
+private tailrec fun CoroutineStackFrame.undispatchedCompletion(): UndispatchedCoroutine<*>? {
     // Find direct completion of this continuation
     val completion: CoroutineStackFrame = when (this) {
         is DispatchedCoroutine<*> -> return null
